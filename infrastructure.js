@@ -23,12 +23,28 @@ var infrastructure =
     server.listen(8080);
 
     // Launch green slice
-    exec('forever start deploy/blue-www/main.js 9090');
-    console.log("blue slice");
+    exec('forever start deploy/blue-www/main.js 9090', function(err, out, code) 
+    {
+      console.log("attempting to launch blue slice");
+      if (err instanceof Error)
+            throw err;
+      if( err )
+      {
+        console.error( err );
+      }
+    });
 
     // Launch blue slice
-    exec('forever start deploy/green-www/main.js 5060');
-    console.log("green slice");
+    exec('forever start deploy/green-www/main.js 5060', function(err, out, code) 
+    {
+      console.log("attempting to launch green slice");
+      if (err instanceof Error)
+        throw err;
+      if( err )
+      {
+        console.error( err );
+      }
+    });
 
 //setTimeout
 //var options = 
@@ -55,5 +71,5 @@ infrastructure.setup();
 process.on('exit', function(){infrastructure.teardown();} );
 process.on('SIGINT', function(){infrastructure.teardown();} );
 process.on('uncaughtException', function(err){
-  console.log(err);
+  console.error(err);
   infrastructure.teardown();} );
