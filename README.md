@@ -1,4 +1,4 @@
-# Workshop: Deployments and Deflighting
+# Workshop: Deployments
 
 In this workshop, we'll cover the basics of setting up a barebone deployment pipeline, in support of a green-blue deployment strategy.  We will be able to build upon this exercise in the upcoming homework and DEPLOYMENT milestone.
 
