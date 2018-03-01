@@ -29,9 +29,9 @@ To ensure we have a git repo that will always have files that reflect the most c
 
 ##### Post-Receive Hook
 
-Inside `$ROOT/green.git/hooks/` inside a `post-receive` file, place the following:
+Inside `green.git/hooks/` inside a `post-receive` file, place the following:
 
-    GIT_WORK_TREE=$ROOT/green-www/ git checkout -f
+    GIT_WORK_TREE=<...path...>/green-www/ git checkout -f
 
 Repeat for blue.
 
@@ -40,15 +40,15 @@ Repeat for blue.
 * You must create the *-www folder manually.
 * You may have to add executable permissions using in *nix systems `chmod +x post-receive`.
 * **Ensure that there is a script header**, such as `#!/bin/sh`, on the first line.
-* For the purpose of this workshop, `$ROOT` refers to the absolute path of your folder.
+* For the purpose of this workshop, `<...path...>` refers to the absolute path of your folder.
 * It will not work the first time.
 
 ### Deploying Commits and Copying Bits
 
 Clone the [app repo](https://github.com/CSC-DevOps/App), and set the following remotes.  See help on [file protocol syntax](http://en.wikipedia.org/wiki/File_URI_scheme#Format).
 
-    git remote add blue file://$ROOT/blue.git
-    git remote add green file://$ROOT/green.git
+    git remote add blue file://<...path...>/blue.git
+    git remote add green file://<...path...>/green.git
 
 You can now push changes in the following manner.
 
@@ -95,3 +95,53 @@ Modify the app repo, to explicitly fail with : `res.status(500).send('Something 
 Have a heartbeat that checks every 30 second for a http 500, and if so, will switch the proxy over to the green environment.
 
 This idea can be generalized to be triggered by any other monitoring/alerts/automated testing (during staging). E.g., See how to use [toobusy](https://hacks.mozilla.org/2013/01/building-a-node-js-server-that-wont-melt-a-node-js-holiday-season-part-5/).
+
+
+### Advanced: Docker deploy
+
+Instead of sending over the files and building, you can modify pipeline to build a docker image that is pushed to a registery and deployed.
+
+##### Registry
+
+Start a private registry on port 5000.
+
+```
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+```
+
+More information about setting up a [TLS-secured registry](https://docs.docker.com/registry/deploying/), which is remotely accessible.
+
+##### Build a container for a node js app.
+
+```
+cd App
+docker build -t ncsu-app .
+docker run -p 50100:8080 -d --name app ncsu-app
+docker logs <containerid>
+```
+
+##### Deploy to registry
+
+If successful, can deploy to a private registry.
+
+```
+docker tag ncsu-app localhost:5000/ncsu:latest
+docker push localhost:5000/ncsu:latest
+```
+
+##### Server update script
+
+A script like this can run after a git hook or deploy command. The server will pull from registry, stop existing app container and run new instance.
+
+```
+docker pull localhost:5000/ncsu:latest  
+docker stop app  
+docker rm app
+docker rmi localhost:5000/ncsu:current  
+docker tag localhost:5000/ncsu:latest localhost:5000/ncsu:current
+docker run -p 50100:8080 -d --name app localhost:5000/ncsu:latest  
+```
+
+##### Test
+
+`curl -i localhost:50100`

@@ -72,4 +72,5 @@ process.on('exit', function(){infrastructure.teardown();} );
 process.on('SIGINT', function(){infrastructure.teardown();} );
 process.on('uncaughtException', function(err){
   console.error(err);
-  infrastructure.teardown();} );
+  infrastructure.teardown();
+} );
