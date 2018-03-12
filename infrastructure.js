@@ -6,7 +6,7 @@ var request = require("request");
 var GREEN = 'http://127.0.0.1:5060';
 var BLUE  = 'http://127.0.0.1:9090';
 
-var TARGET = GREEN;
+var TARGET = BLUE;
 
 var infrastructure =
 {
@@ -46,12 +46,18 @@ var infrastructure =
       }
     });
 
-//setTimeout
-//var options = 
-//{
-//  url: "http://localhost:8080",
-//};
-//request(options, function (error, res, body) {
+setInterval(function(){
+var options = 
+{
+  url: "http://localhost:8080",
+};
+request(options, function (error, res, body) {
+if(res.statusCode == 500){
+        TARGET = GREEN;
+	console.log('Server changed to green');
+  }
+});
+},30000);
 
   },
 
